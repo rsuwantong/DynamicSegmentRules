@@ -5,6 +5,7 @@
 # Input: taps, tracked_events
 # Version:
 #   2016/12/08 RS: Initial version 
+#	2017/02/20 RS: Add 2017/01 & 2017/02 offers
 ####################################################################################
 */
 
@@ -43,25 +44,39 @@ sum(imp_flg) as imps, sum(click_flg) as clicks, year, month, day   from
 		case when lower(a.header.platform)='iphone' and (lower(a.header.user_agent) like ('%windows phone%') or lower(a.header.user_agent) like ('%lumia%')) then 'WINDOWS_PHONE' else a.header.platform end as platform,  
 		a.header.user_agent as user_agent,
 		a.action_id as action_id, 
-	case
+	case	
 		when a.tactic_id = 186858 then 'mnp-device-discount-samsung'
 		when a.tactic_id = 191242 then 'mnp-device-discount-samsung'
 		when a.tactic_id = 191243 then 'mnp-free-device'
 		when a.tactic_id = 191244  then 'tariff'
 		when a.tactic_id = 199183 then 'booster'
-		when a.tactic_id in (197236, 213768) then 'mnp-samsung-galaxy-j2'
+		when a.tactic_id in (197236, 213768, 241984) then 'mnp-samsung-galaxy-j2'
 		when a.tactic_id = 200320 then 'mnp-samsung-galaxy-j5'
 		when a.tactic_id = 201014 then 'mnp-samsung-galaxy-a5'
 		when a.tactic_id in (203164,217118) then 'mnp-asus-zenfone-45' 
 		when a.tactic_id = 214301 then 'mnp-oppo-mirror5' 
 		when a.tactic_id = 217958 then 'mnp-free-dtac-pocket-wifi' 
-		when a.tactic_id = 221701 then 'mnp-free-dtac-phone-s2'	
-		when a.tactic_id = 222237 then 'Nice Number'	
 		when a.tactic_id = 223067 then 'mnp-vivo-v5' 
-		when a.tactic_id = 222299 then 'mnp-samsung-galaxy-j5-prime'
+		when a.tactic_id = 221701 then 'mnp-free-dtac-phone-s2'	
+		when a.tactic_id in (222299, 231134, 231808, 231809, 238494, 238495, 238496) then 'mnp-samsung-galaxy-j5-prime'
+		when a.tactic_id in (224006, 231132, 231810, 231811) then 'mnp-asus-zenfone-55'
+		when a.tactic_id in (226384, 232254, 232255, 232257, 238491, 238492, 238493, 238924, 241140,241141) then 'mnp-samsung-galaxy-j2-prime'
+		when a.tactic_id in (232303, 232259, 232260, 232261, 238498, 238501, 238502) then 'mnp-samsung-galaxy-j7-prime'
+		when a.tactic_id in (231135, 231805, 231806) then 'mnp-huawei-mate9'
+		when a.tactic_id in (231460, 231812, 231813) then 'sim-platinum-number'
+		when a.tactic_id in (231461, 231814, 231815, 241982) then 'sim-nice-number'
+		when a.tactic_id in (231462, 231816, 231817) then 'lucky-number'
+		when a.tactic_id in (232262, 232263, 232264, 241136, 241137, 241138, 241983) then 'mnp-huawei-p9'
+		when a.tactic_id in (234395, 234396, 234397) then 'mnp-samsung-galaxy-note5'
+		when a.tactic_id in (238642, 238644, 238645, 241985) then 'mgm'
 		end as offer, 
-	h.value as header_url , a.year, a.month, a.day
- from default.taps a, a.header.incoming_ids b, a.header.query_params q, a.header.http_headers h where q.key='ext_cat' and h.key = 'Referer' and a.campaign_id=5138 and a.action_id IN ('impression','click') and a.year=${var:year} and a.month=${var:month} and a.day =${var:day} ) A) B group by sight_date, offer, hl_platform, dvc_techname, source, year, month, day) C 
+	h.value as header_url , 
+	case 
+		when campaign_id = 5138 then 'kd' 
+		when campaign_id = 5413 then 'pt' 
+		end as source, 
+	a.year, a.month, a.day
+ from default.taps a, a.header.incoming_ids b, a.header.query_params q, a.header.http_headers h where q.key='ext_cat' and h.key = 'Referer' and a.campaign_id in (5138,5413) and a.action_id IN ('impression','click') and a.year=${var:year} and a.month=${var:month} and a.day =${var:day} ) A) B group by sight_date, offer, hl_platform, dvc_techname, source, year, month, day) C 
  
  full outer join 
  
@@ -84,9 +99,11 @@ sum(imp_flg) as imps, sum(click_flg) as clicks, year, month, day   from
 	case 
 		when referrer_url like '%special-package%' then 'tariff' 
 		when referrer_url like '%asus-zenfone-45%' then 'mnp-asus-zenfone-45' 
-		else regexp_replace(regexp_replace(regexp_replace(referrer_url,'.*specialoffer/',''),'\\.html.*',''),'-lite.*','') end as offer, 
+		when referrer_url like '%mnp-huawei-p9%' then 'mnp-huawei-p9' 
+		else lcase(regexp_replace(regexp_replace(regexp_replace(regexp_replace(referrer_url,'.*specialoffer/',''),'\\.html.*',''),'-lite.*',''),'-v[0-9].*','')) end as offer, 
 	case
 		when referrer_url like '%kaidee%' then 'kd'
+		when referrer_url like '%pantip%' then 'pt'
 		when referrer_url like '%facebook%' then 'fb' else 'oth' end as source, year, month, day  
 from 
 (

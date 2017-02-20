@@ -14,7 +14,7 @@
 
 drop table if exists sgmt_rules.dvc_selected_control;
 create table sgmt_rules.dvc_selected_control row format delimited fields terminated by '\t' as (
-select a.offer,a.uc1_priority, a.active_flg_kd, a.active_flg_fb, a.active_flg_pt, b.dvc_techname, a.min_CTR, a.min_landings, a.min_submits, a.min_S2L, a.max_CPS,  concat_ws(' and ', concat('CTR>=', a.min_ctr), concat('submits>=', a.min_submits), concat('S2L>=', a.min_S2L),concat('CPS<=', a.max_CPS) ) as feedback_cond from (select  * from sgmt_rules.offer_control where cast(start_date as string) <= '2017-01-02' and '2017-01-02'  < cast(end_date as string) and (active_flg_fb is not null or active_flg_kd is not null or active_flg_pt is not null) ) a join apollo_util.techname_prop_map b on a.target_rlp_min <=cast(b.release_price as double)*40 and cast(b.release_price as double)*40<=a.target_rlp_max group by offer, uc1_priority, active_flg_kd, active_flg_fb, active_flg_pt, dvc_techname, min_CTR, min_landings, min_submits, min_S2L, max_CPS);
+select a.offer,a.uc1_priority, a.active_flg_kd, a.active_flg_fb, a.active_flg_pt, b.dvc_techname, a.min_CTR, a.min_landings, a.min_submits, a.min_S2L, a.max_CPS,  concat_ws(' and ', concat('CTR>=', a.min_ctr), concat('submits>=', a.min_submits), concat('S2L>=', a.min_S2L),concat('CPS<=', a.max_CPS) ) as feedback_cond from (select  * from sgmt_rules.offer_control where cast(start_date as string) <= '2017-02-01' and '2017-02-01'  < cast(end_date as string) and (active_flg_fb is not null or active_flg_kd is not null or active_flg_pt is not null) ) a join apollo_util.techname_prop_map b on a.target_rlp_min <=cast(b.release_price as double)*40 and cast(b.release_price as double)*40<=a.target_rlp_max group by offer, uc1_priority, active_flg_kd, active_flg_fb, active_flg_pt, dvc_techname, min_CTR, min_landings, min_submits, min_S2L, max_CPS);
 
 
 drop table if exists sgmt_rules.offer_list;
@@ -93,15 +93,15 @@ select d.offer, d.uc1_priority, regexp_replace(regexp_replace(c.dvc_techname,'.*
 drop table if exists sgmt_rules.rules_1day;
 create table sgmt_rules.rules_1day row format delimited fields terminated by '\t' as (
 select * from 
-(select 'kd' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_kd where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac') group by source, offer, uc1_priority union all
-select 'kd_app' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_kd_app where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac') group by source, offer, uc1_priority union all
-select 'fb' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_fb where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac')  group by source, offer, uc1_priority union all
-select 'pt' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_pt where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac')  group by source, offer, uc1_priority) A order by source asc, uc1_priority asc) ;
+(select 'kd' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_kd where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac','i-mobile','i-style','smartphone','i_mobile','i_style') group by source, offer, uc1_priority union all
+select 'kd_app' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_kd_app where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac','i-mobile','i-style','smartphone','i_mobile','i_style') group by source, offer, uc1_priority union all
+select 'fb' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_fb where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac','i-mobile','i-style','smartphone','i_mobile','i_style')  group by source, offer, uc1_priority union all
+select 'pt' as source, offer, uc1_priority, concat('userAgent(".*(?i)(',group_concat(trim(dvc_techname),'|'),').*")') as rule from sgmt_rules.offer_dvc_map_pt where dvc_techname not in ('asus','huawei','zte-blade','vivo','smart','iris','lava','true','asus','lenovo','htc','dtac','i-mobile','i-style','smartphone','i_mobile','i_style')  group by source, offer, uc1_priority) A order by source asc, uc1_priority asc) ;
 
 select * from sgmt_rules.rules_1day order by source asc, uc1_priority asc;
 
 /*
-impala-shell -i impala.prd.sg1.tapad.com:21000 -B -o /local/home/rata.suwantong/rules_170102.csv --output_delimiter=',' -q "select * from sgmt_rules.rules_1day order by source asc,uc1_priority asc"
+impala-shell -i impala.prd.sg1.tapad.com:21000 -B -o /local/home/rata.suwantong/rules_170124.csv --output_delimiter=',' -q "select * from sgmt_rules.rules_1day order by source asc,uc1_priority asc"
 
 select * from sgmt_rules.rules_1day;
 */
